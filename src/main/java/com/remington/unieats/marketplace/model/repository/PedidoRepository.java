@@ -12,6 +12,5 @@ import java.util.List;
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     List<Pedido> findByTiendaOrderByFechaCreacionDesc(Tienda tienda);
     
-    // --- MÉTODO AÑADIDO ---
     List<Pedido> findByCompradorOrderByFechaCreacionDesc(Usuario comprador);
 }

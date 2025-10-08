@@ -19,7 +19,6 @@ public interface TiendaRepository extends JpaRepository<Tienda, Integer> {
 
     Optional<Tienda> findByIdAndEstado(Integer id, EstadoTienda estado);
 
-    // MÉTODO AÑADIDO (PARA EL NUEVO ERROR)
     @Query("SELECT t FROM Tienda t JOIN FETCH t.vendedor")
     List<Tienda> findAllWithVendedor();
 }

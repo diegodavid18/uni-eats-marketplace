@@ -7,7 +7,5 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Optional<Usuario> findByCorreo(String correo);
     
-    // ===== MÉTODO NUEVO AÑADIDO =====
     Optional<Usuario> findByResetPasswordToken(String token);
-    // ================================
 }

@@ -12,9 +12,7 @@ import java.util.Optional;
 @Repository
 public interface HorarioRepository extends JpaRepository<Horario, Integer> {
 
-    // MÉTODO AÑADIDO (PARA EL ERROR 1)
     List<Horario> findByTienda(Tienda tienda);
 
-    // MÉTODO AÑADIDO (PARA EL ERROR 2)
     Optional<Horario> findByTiendaAndDia(Tienda tienda, DiaSemana dia);
 }
