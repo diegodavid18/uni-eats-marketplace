@@ -79,7 +79,7 @@ public class CRMController {
         EmailTemplate template = crmService.createEmailTemplate(
             payload.get("nombre"),
             payload.get("asunto"),
-            payload.get("contenido"),
+            payload.get("contenidoHtml") != null ? payload.get("contenidoHtml") : payload.get("contenido"),
             payload.get("categoria")
         );
         return ResponseEntity.ok(template);

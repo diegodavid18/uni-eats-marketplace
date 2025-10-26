@@ -30,6 +30,7 @@ public class SecurityConfig {
                     "/img/**",
                     "/uploads/**",
                     "/api/marketplace/**", // Permitimos ver tiendas sin iniciar sesión
+                    "/api/crm/**", // Permitir todos los endpoints de CRM para pruebas
                     "/error/**", // Permitir páginas de error
                     "/custom-logout" // Permitir logout personalizado
                 ).permitAll()

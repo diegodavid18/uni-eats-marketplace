@@ -1,0 +1,2 @@
+INSERT INTO email_template (nombre, asunto, contenido_html, categoria) VALUES 
+('Incentivo Estudial', 'El hambre y la dedicación', '<html><body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; font-family: Arial, sans-serif;"><h1>¡El hambre se hace grande!</h1><h2>Como las ganas de estudiar</h2><p>Somos UniEats, tu marketplace de comida universitario dedicado a los estudiantes.</p><p>Encuentra comida deliciosa a precios universitarios.</p></body></html>', 'marketing');
