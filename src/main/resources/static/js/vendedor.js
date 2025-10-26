@@ -325,6 +325,7 @@ function startVendorApp() {
                             <nav class="fixed bottom-0 left-0 right-0 w-full max-w-lg mx-auto bg-white/90 backdrop-blur-md border-t-2 border-slate-200 flex justify-around z-40 shadow-t-lg">
                                 <a href="#" class="nav-link" data-target="pedidos"><div class="flex flex-col items-center justify-center w-full pt-2 pb-1"><i class="fas fa-receipt nav-icon text-xl"></i><span class="text-xs mt-1 font-medium">Pedidos</span><span class="nav-indicator"></span></div></a>
                                 <a href="#" class="nav-link" data-target="productos"><div class="flex flex-col items-center justify-center w-full pt-2 pb-1"><i class="fas fa-hamburger nav-icon text-xl"></i><span class="text-xs mt-1 font-medium">Productos</span><span class="nav-indicator"></span></div></a>
+                                <a href="#" class="nav-link" data-target="reportes"><div class="flex flex-col items-center justify-center w-full pt-2 pb-1"><i class="fas fa-chart-bar nav-icon text-xl"></i><span class="text-xs mt-1 font-medium">Reportes</span><span class="nav-indicator"></span></div></a>
                                 <a href="#" class="nav-link" data-target="perfil"><div class="flex flex-col items-center justify-center w-full pt-2 pb-1"><i class="fas fa-store nav-icon text-xl"></i><span class="text-xs mt-1 font-medium">Mi Tienda</span><span class="nav-indicator"></span></div></a>
                             </nav>
                             <button data-modal-open="product-modal" class="fixed bottom-24 right-5 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center z-30 transform hover:scale-110 active:scale-100 transition-transform duration-200">
@@ -341,12 +342,14 @@ function startVendorApp() {
                     mainContent.innerHTML = `
                         ${App.components.Pedidos.render(data)}
                         ${App.components.Productos.render(data)}
+                        ${App.components.Reportes.render(data)}
                         ${App.components.Perfil.render(data)}
                     `;
                     
                     // Initialize components immediately - make them non-blocking
                     App.components.Pedidos.initNonBlocking(data);
                     App.components.Productos.init(data);
+                    App.components.Reportes.init(data);
                     App.components.Perfil.init(data);
                     
                     document.querySelectorAll('.nav-link').forEach(link => {
@@ -1342,6 +1345,160 @@ function startVendorApp() {
                             btn.disabled = false;
                         }
                     });
+                }
+            },
+
+            Reportes: {
+                render(data) {
+                    const tienda = App.state.tienda || {};
+                    const ventasHoy = (tienda.ventasHoy || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+                    const totalVentas = (tienda.totalVentas || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+                    const totalPedidos = tienda.totalPedidos || 0;
+                    const pedidosCompletados = tienda.pedidosCompletados || 0;
+                    
+                    return `
+                        <div id="view-reportes" class="main-view p-4">
+                            <header class="mb-6">
+                                <h1 class="text-2xl font-bold text-slate-800">Reportes y Análisis</h1>
+                                <p class="text-sm text-slate-500 mt-1">Visualiza tu desempeño con Power BI</p>
+                            </header>
+                            
+                            <div class="space-y-4">
+                                <!-- Tarjetas de Estadísticas -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-xs font-semibold text-blue-600">VENTAS HOY</p>
+                                                <p class="text-xl font-bold text-blue-900 mt-2">${ventasHoy}</p>
+                                            </div>
+                                            <i class="fas fa-chart-line text-blue-300 text-3xl"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-xs font-semibold text-green-600">TOTAL VENTAS</p>
+                                                <p class="text-xl font-bold text-green-900 mt-2">${totalVentas}</p>
+                                            </div>
+                                            <i class="fas fa-chart-pie text-green-300 text-3xl"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-xs font-semibold text-purple-600">TOTAL PEDIDOS</p>
+                                                <p class="text-xl font-bold text-purple-900 mt-2">${totalPedidos}</p>
+                                            </div>
+                                            <i class="fas fa-shopping-bag text-purple-300 text-3xl"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-xs font-semibold text-orange-600">COMPLETADOS</p>
+                                                <p class="text-xl font-bold text-orange-900 mt-2">${pedidosCompletados}</p>
+                                            </div>
+                                            <i class="fas fa-check-circle text-orange-300 text-3xl"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botón Power BI Principal -->
+                                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-chart-bar text-white text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="text-lg font-bold text-slate-800">Análisis Avanzado</h2>
+                                            <p class="text-sm text-slate-500">Dashboards y reportes en Power BI</p>
+                                        </div>
+                                    </div>
+                                    <a href="#" id="open-powerbi-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        Abrir Power BI
+                                    </a>
+                                </div>
+                                
+                                <!-- Sección de Información -->
+                                <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                                    <div class="flex gap-3">
+                                        <i class="fas fa-info-circle text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
+                                        <div class="text-sm text-blue-800">
+                                            <p class="font-semibold mb-1">Información</p>
+                                            <p>Accede a dashboards interactivos con análisis detallado de ventas, tendencias, productos más vendidos y más.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Otras Opciones Rápidas -->
+                                <div class="grid grid-cols-1 gap-3">
+                                    <button class="bg-white hover:bg-slate-50 border border-slate-200 p-4 rounded-xl text-left transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-download text-indigo-600 text-lg"></i>
+                                            <div>
+                                                <p class="font-semibold text-slate-800">Descargar Reportes</p>
+                                                <p class="text-xs text-slate-500">Exporta datos en Excel o PDF</p>
+                                            </div>
+                                            <i class="fas fa-chevron-right text-slate-400 ml-auto"></i>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                
+                init(data) {
+                    const powerbiBtn = document.getElementById('open-powerbi-btn');
+                    if (powerbiBtn) {
+                        powerbiBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            // Abrir Power BI en una nueva ventana
+                            // Por ahora mostraremos un modal con instrucciones
+                            const powerbiUrl = 'https://app.powerbi.com'; // URL base de Power BI
+                            // En producción, esto sería tu dashboard específico
+                            this.openPowerBi();
+                        });
+                    }
+                },
+                
+                openPowerBi() {
+                    // Crear modal con opciones
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+                    modal.innerHTML = `
+                        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm"></div>
+                        <div class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-slate-800">Power BI</h2>
+                                    <p class="text-sm text-slate-500 mt-1">Accede a tus reportes</p>
+                                </div>
+                                <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <a href="https://app.powerbi.com/home" target="_blank" rel="noopener noreferrer" class="block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-center transition-all">
+                                    <i class="fas fa-external-link-alt mr-2"></i>Abrir Power BI
+                                </a>
+                                
+                                <button onclick="this.closest('.fixed').remove()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition-all">
+                                    Cerrar
+                                </button>
+                            </div>
+                            
+                            <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm text-amber-800">
+                                <p class="font-semibold mb-1">💡 Nota:</p>
+                                <p>Tu acceso a Power BI se configurará cuando tu tienda sea activada por el administrador.</p>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
                 }
             },
 
