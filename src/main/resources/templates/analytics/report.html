@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Power BI Report | Uni-Eats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Power BI JavaScript SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.22.1/dist/powerbi.min.js"></script>
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        #reportContainer {
+            height: calc(100vh - 120px);
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/analytics" class="text-amber-600 hover:text-amber-700 mr-4">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </a>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-line text-2xl text-amber-500"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h1 class="text-xl font-bold text-gray-900">Power BI Report</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleFullscreen()" class="text-gray-600 hover:text-gray-900" title="Pantalla completa">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button onclick="refreshReport()" class="text-gray-600 hover:text-gray-900" title="Actualizar">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                    <a href="/analytics" class="text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Error Alert -->
+    <div th:if="${error}" class="max-w-7xl mx-auto py-4 px-4">
+        <div class="bg-red-100 border-l-4 border-red-500 p-4 rounded-md">
+            <div class="flex">
+                <div class="ml-3">
+                    <p class="text-sm text-red-700" th:text="${error}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-amber-500 mb-4"></i>
+            <p class="text-gray-600">Cargando reporte de Power BI...</p>
+        </div>
+    </div>
+
+    <!-- Report Container -->
+    <div class="w-full" th:if="${!error}">
+        <div id="reportContainer"></div>
+    </div>
+
+    <script th:if="${!error}">
+        // Configuración del reporte
+        const reportConfig = {
+            embedToken: /*[[${embedToken}]]*/ '',
+            embedUrl: /*[[${embedUrl}]]*/ '',
+            reportId: /*[[${reportId}]]*/ '',
+            workspaceId: /*[[${workspaceId}]]*/ ''
+        };
+
+        // Configuración de Power BI
+        const config = {
+            type: 'report',
+            id: reportConfig.reportId,
+            embedUrl: reportConfig.embedUrl,
+            accessToken: reportConfig.embedToken,
+            tokenType: window['powerbi-client'].models.TokenType.Embed,
+            settings: {
+                panes: {
+                    filters: {
+                        expanded: false,
+                        visible: true
+                    },
+                    pageNavigation: {
+                        visible: true
+                    }
+                },
+                background: window['powerbi-client'].models.BackgroundType.Transparent,
+                layoutType: window['powerbi-client'].models.LayoutType.FitToWidth,
+                customLayout: {
+                    displayOption: window['powerbi-client'].models.DisplayOption.FitToPage
+                }
+            }
+        };
+
+        // Función para cargar el reporte
+        function loadReport() {
+            try {
+                const reportContainer = document.getElementById('reportContainer');
+                const powerbi = window['powerbi-client'];
+                
+                // Resetear el contenedor
+                powerbi.reset(reportContainer);
+                
+                // Embedder el reporte
+                const report = powerbi.embed(reportContainer, config);
+                
+                // Eventos del reporte
+                report.on('loaded', function() {
+                    console.log('Reporte cargado exitosamente');
+                    hideLoadingIndicator();
+                });
+                
+                report.on('rendered', function() {
+                    console.log('Reporte renderizado exitosamente');
+                });
+                
+                report.on('error', function(event) {
+                    console.error('Error en el reporte:', event.detail);
+                    hideLoadingIndicator();
+                    showError('Error al cargar el reporte: ' + event.detail);
+                });
+
+                // Guardar referencia global para otras funciones
+                window.currentReport = report;
+                
+            } catch (error) {
+                console.error('Error embeddeando el reporte:', error);
+                hideLoadingIndicator();
+                showError('Error al cargar el reporte: ' + error.message);
+            }
+        }
+
+        // Función para ocultar el indicador de carga
+        function hideLoadingIndicator() {
+            const indicator = document.getElementById('loadingIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // Función para mostrar errores
+        function showError(message) {
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.innerHTML = `
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Error al cargar el reporte</h3>
+                        <p class="text-gray-600 mb-4">${message}</p>
+                        <button onclick="location.reload()" class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700">
+                            Reintentar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Función para actualizar el reporte
+        function refreshReport() {
+            if (window.currentReport) {
+                window.currentReport.refresh();
+            } else {
+                location.reload();
+            }
+        }
+
+        // Función para pantalla completa
+        function toggleFullscreen() {
+            const reportContainer = document.getElementById('reportContainer');
+            if (!document.fullscreenElement) {
+                reportContainer.requestFullscreen().catch(err => {
+                    console.error('Error al entrar en pantalla completa:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Inicializar cuando la página carga
+        document.addEventListener('DOMContentLoaded', function() {
+            if (reportConfig.embedToken && reportConfig.embedUrl) {
+                loadReport();
+            } else {
+                hideLoadingIndicator();
+                showError('Configuración del reporte incompleta');
+            }
+        });
+
+        // Manejar cambios de tamaño de ventana
+        window.addEventListener('resize', function() {
+            if (window.currentReport) {
+                window.currentReport.resizeToFitContainer();
+            }
+        });
+    </script>
+</body>
+</html>

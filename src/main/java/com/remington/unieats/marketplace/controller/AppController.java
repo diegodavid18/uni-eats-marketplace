@@ -147,7 +147,7 @@ public class AppController {
     public String showForgotPasswordForm() {
         return "forgot_password_form";
     }
- 
+
     @PostMapping("/forgot-password")
     public String processForgotPassword(HttpServletRequest request, Model model) {
         String email = request.getParameter("email");

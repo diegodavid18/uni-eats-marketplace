@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuración Power BI | Uni-Eats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .config-step { transition: all 0.3s ease; }
+        .config-step:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/analytics" class="text-amber-600 hover:text-amber-700 mr-4">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </a>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-cog text-2xl text-amber-500"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h1 class="text-xl font-bold text-gray-900">Configuración Power BI</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto py-6 px-4">
+        
+        <!-- Status Overview -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Estado de la Configuración</h2>
+            
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div th:classappend="${isConfigured} ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'" 
+                                 class="w-10 h-10 rounded-full flex items-center justify-center">
+                                <i th:class="${isConfigured} ? 'fas fa-check' : 'fas fa-times'"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Estado General</h3>
+                            <p th:text="${isConfigured} ? 'Configurado correctamente' : 'Configuración incompleta'" 
+                               th:class="${isConfigured} ? 'text-green-600' : 'text-red-600'" 
+                               class="text-sm">Estado</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Client ID:</span>
+                            <span class="text-sm font-medium" th:text="${clientId}">No configurado</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Tenant ID:</span>
+                            <span class="text-sm font-medium" th:text="${tenantId}">No configurado</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Workspace ID:</span>
+                            <span class="text-sm font-medium" th:text="${workspaceId ?: 'No configurado'}">No configurado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Guide -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Guía de Configuración</h2>
+            
+            <div class="space-y-6">
+                <!-- Step 1 -->
+                <div class="config-step bg-white shadow rounded-lg p-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center font-bold">1</div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Registrar Aplicación en Azure AD</h3>
+                            <p class="text-gray-600 mb-4">Registra tu aplicación en Azure Active Directory para obtener las credenciales necesarias.</p>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                                    <li>Ve al <a href="https://portal.azure.com" target="_blank" class="text-blue-600 hover:underline">Portal de Azure</a></li>
+                                    <li>Navega a "Azure Active Directory" → "App registrations"</li>
+                                    <li>Haz clic en "New registration"</li>
+                                    <li>Completa el formulario y registra la aplicación</li>
+                                    <li>Copia el "Application (client) ID" y "Directory (tenant) ID"</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="config-step bg-white shadow rounded-lg p-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center font-bold">2</div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Crear Client Secret</h3>
+                            <p class="text-gray-600 mb-4">Genera un secreto para que tu aplicación pueda autenticarse.</p>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                                    <li>En tu aplicación registrada, ve a "Certificates & secrets"</li>
+                                    <li>Haz clic en "New client secret"</li>
+                                    <li>Agrega una descripción y selecciona la duración</li>
+                                    <li>Copia el valor del secreto (¡solo se muestra una vez!)</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="config-step bg-white shadow rounded-lg p-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center font-bold">3</div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Configurar Permisos de Power BI</h3>
+                            <p class="text-gray-600 mb-4">Otorga los permisos necesarios para acceder a Power BI.</p>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                                    <li>Ve a "API permissions" en tu aplicación</li>
+                                    <li>Haz clic en "Add a permission"</li>
+                                    <li>Selecciona "Power BI Service"</li>
+                                    <li>Agrega permisos: "Dataset.Read.All", "Report.Read.All", "Workspace.Read.All"</li>
+                                    <li>Haz clic en "Grant admin consent"</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="config-step bg-white shadow rounded-lg p-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center font-bold">4</div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Configurar application.properties</h3>
+                            <p class="text-gray-600 mb-4">Agrega las configuraciones en tu archivo de propiedades.</p>
+                            <div class="bg-gray-900 text-green-400 p-4 rounded-md font-mono text-sm overflow-x-auto">
+<pre># Power BI Configuration
+powerbi.client-id=tu-client-id-aqui
+powerbi.client-secret=tu-client-secret-aqui
+powerbi.tenant-id=tu-tenant-id-aqui
+powerbi.workspace-id=tu-workspace-id-aqui
+powerbi.report-id=tu-report-id-aqui</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Connection -->
+        <div class="mb-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Probar Conexión</h3>
+                <p class="text-gray-600 mb-4">Una vez configurado, puedes probar la conexión con Power BI.</p>
+                <button onclick="testConnection()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-plug mr-2"></i>
+                    Probar Conexión
+                </button>
+                <div id="testResult" class="mt-4 hidden"></div>
+            </div>
+        </div>
+
+        <!-- Documentation Links -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Documentación Adicional</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><a href="https://docs.microsoft.com/power-bi/developer/embedded/embed-sample-for-customers" target="_blank" class="underline">Power BI Embedded Documentation</a></li>
+                            <li><a href="https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app" target="_blank" class="underline">Register an Application in Azure AD</a></li>
+                            <li><a href="https://docs.microsoft.com/power-bi/admin/service-admin-portal" target="_blank" class="underline">Power BI Admin Settings</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testConnection() {
+            const button = event.target;
+            const resultDiv = document.getElementById('testResult');
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Probando...';
+            
+            try {
+                const response = await fetch('/analytics/api/reports');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md';
+                    resultDiv.innerHTML = `
+                        <div class="flex">
+                            <i class="fas fa-check-circle mr-2 mt-0.5"></i>
+                            <div>
+                                <strong>¡Conexión exitosa!</strong>
+                                <p class="mt-1">Se encontraron ${data.count || 0} reportes en el workspace.</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            } catch (error) {
+                resultDiv.className = 'mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md';
+                resultDiv.innerHTML = `
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle mr-2 mt-0.5"></i>
+                        <div>
+                            <strong>Error de conexión</strong>
+                            <p class="mt-1">${error.message}</p>
+                        </div>
+                    </div>
+                `;
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-plug mr-2"></i>Probar Conexión';
+                resultDiv.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
