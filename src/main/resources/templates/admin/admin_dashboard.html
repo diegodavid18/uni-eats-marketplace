@@ -506,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================================
     const userModal = document.getElementById('user-modal');
     const openModalBtn = document.getElementById('open-modal-btn');
+    const openModalFromDashboard = document.querySelector('.open-modal-from-dashboard');
     const closeModalBtns = document.querySelectorAll('.close-modal-btn');
     const userForm = document.getElementById('user-form');
     const modalTitle = document.getElementById('modal-title');
@@ -514,14 +515,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const openModal = () => userModal.classList.remove('hidden');
     const closeModal = () => userModal.classList.add('hidden');
 
+    function setupCreateUserModal() {
+        userForm.reset();
+        userForm.querySelector('[name="id"]').value = '0';
+        modalTitle.textContent = 'Crear Nuevo Usuario';
+        passwordField.placeholder = 'Contraseña (requerida)';
+        passwordField.required = true;
+        openModal();
+    }
+
     if (openModalBtn) {
-        openModalBtn.addEventListener('click', () => {
-            userForm.reset();
-            userForm.querySelector('[name="id"]').value = '0';
-            modalTitle.textContent = 'Crear Nuevo Usuario';
-            passwordField.placeholder = 'Contraseña (requerida)';
-            passwordField.required = true;
-            openModal();
+        openModalBtn.addEventListener('click', setupCreateUserModal);
+    }
+
+    if (openModalFromDashboard) {
+        openModalFromDashboard.addEventListener('click', (e) => {
+            e.preventDefault();
+            setupCreateUserModal();
         });
     }
 
