@@ -2,6 +2,8 @@ package com.remington.unieats.marketplace.controller;
 
 import com.remington.unieats.marketplace.model.entity.*;
 import com.remington.unieats.marketplace.service.CRMService;
+import com.remington.unieats.marketplace.service.CRMServiceImpl;
+import com.remington.unieats.marketplace.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 public class CRMController {
 
     @Autowired private CRMService crmService;
+    @Autowired private EmailService emailService;
 
     // ===== CUSTOMER PROFILES =====
     @PostMapping("/profiles/create/{usuarioId}")
@@ -153,5 +156,52 @@ public class CRMController {
     @GetMapping("/campaigns/{campaignId}/stats")
     public ResponseEntity<List<CampaignSend>> getCampaignStats(@PathVariable Long campaignId) {
         return ResponseEntity.ok(crmService.getCampaignSendStats(campaignId));
+    }
+
+    // ===== CAMPAÑAS MASIVAS =====
+    @PostMapping("/campaigns/{campaignId}/send-segment/{segment}/{templateId}")
+    public ResponseEntity<?> enviarCampanaSegmento(
+            @PathVariable Long campaignId,
+            @PathVariable String segment,
+            @PathVariable Long templateId) {
+        try {
+            int enviados = ((CRMServiceImpl) crmService).enviarCampanaPorSegmento(campaignId, segment, templateId);
+            return ResponseEntity.ok(Map.of(
+                "message", "Campaña enviada",
+                "totalEnviados", enviados,
+                "campaignId", campaignId,
+                "segment", segment
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/campaigns/{campaignId}/analytics")
+    public ResponseEntity<?> obtenerAnalyticsCampana(@PathVariable Long campaignId) {
+        try {
+            Map<String, Object> stats = ((CRMServiceImpl) crmService).obtenerEstadisticasCampana(campaignId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/email/send-test")
+    public ResponseEntity<?> enviarEmailTest(@RequestParam String destinatario) {
+        try {
+            boolean enviado = emailService.enviarEmailHtml(
+                "Test - UniEats Marketplace",
+                "<h1>¡Hola!</h1><p>Este es un correo de prueba desde UniEats Marketplace</p>",
+                destinatario
+            );
+            return ResponseEntity.ok(Map.of(
+                "message", enviado ? "Correo enviado exitosamente" : "Error al enviar",
+                "destinatario", destinatario,
+                "enviado", enviado
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

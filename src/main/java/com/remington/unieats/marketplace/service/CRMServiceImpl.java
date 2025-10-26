@@ -8,9 +8,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @Service
 public class CRMServiceImpl implements CRMService {
+
+    private static final Logger logger = Logger.getLogger(CRMServiceImpl.class.getName());
 
     @Autowired private CustomerProfileRepository profileRepository;
     @Autowired private BehaviorLogRepository behaviorLogRepository;
@@ -23,6 +26,7 @@ public class CRMServiceImpl implements CRMService {
     @Autowired private LoyaltyTransactionRepository transactionRepository;
     @Autowired private UserEngagementTrackingRepository engagementRepository;
     @Autowired private CampaignLinkRepository linkRepository;
+    @Autowired private EmailService emailService;
 
     @Override
     public CustomerProfile createOrUpdateProfile(Usuario usuario) {
@@ -108,10 +112,27 @@ public class CRMServiceImpl implements CRMService {
         send.setEmailAddress(usuario.getCorreo());
         send.setAsunto(template.getAsuntoTemplate());
         send.setContenidoEnviado(template.getContenidoHtml());
-        send.setEstado("SENT");
         send.setFechaEnvio(LocalDateTime.now());
         
-        return sendRepository.save(send);
+        // Intentar enviar el correo real
+        boolean enviado = emailService.enviarEmailHtml(
+            template.getAsuntoTemplate(),
+            template.getContenidoHtml(),
+            usuario.getCorreo()
+        );
+        
+        // Establecer estado según el resultado
+        send.setEstado(enviado ? "SENT" : "FAILED");
+        
+        CampaignSend saved = sendRepository.save(send);
+        
+        if (enviado) {
+            logger.info("✓ Correo enviado a " + usuario.getCorreo() + " - Campaña ID: " + campaignId);
+        } else {
+            logger.warning("✗ Fallo al enviar correo a " + usuario.getCorreo());
+        }
+        
+        return saved;
     }
 
     @Override
@@ -268,6 +289,60 @@ public class CRMServiceImpl implements CRMService {
     @Override
     public Optional<UserEngagementTracking> getEngagementTracking(Usuario usuario) {
         return engagementRepository.findByUsuario(usuario);
+    }
+
+    /**
+     * Envía una campaña masiva a todos los usuarios de un segmento
+     */
+    public int enviarCampanaPorSegmento(Long campaignId, String segmento, Long templateId) {
+        Optional<MarketingCampaign> campaign = campaignRepository.findById(campaignId);
+        Optional<EmailTemplate> template = templateRepository.findById(templateId);
+        
+        if (campaign.isEmpty() || template.isEmpty()) {
+            logger.warning("Campaña o plantilla no encontrada");
+            return 0;
+        }
+
+        List<CustomerProfile> profiles = profileRepository.findBySegment(segmento);
+        int enviados = 0;
+
+        for (CustomerProfile profile : profiles) {
+            Usuario usuario = profile.getUsuario();
+            CampaignSend send = sendCampaignEmail(campaignId, usuario, template.get());
+            if (send != null && "SENT".equals(send.getEstado())) {
+                enviados++;
+            }
+        }
+
+        campaign.get().setEstado("ACTIVE");
+        campaignRepository.save(campaign.get());
+        logger.info("Campaña " + campaignId + " enviada a " + enviados + " usuarios del segmento: " + segmento);
+        
+        return enviados;
+    }
+
+    /**
+     * Obtiene estadísticas de una campaña
+     */
+    public java.util.Map<String, Object> obtenerEstadisticasCampana(Long campaignId) {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        
+        Optional<MarketingCampaign> campaign = campaignRepository.findById(campaignId);
+        if (campaign.isEmpty()) return stats;
+
+        List<CampaignSend> sends = sendRepository.findByCampaign(campaign.get());
+        
+        long totalEnviados = sends.size();
+        long abiertos = sends.stream().filter(s -> "OPENED".equals(s.getEstado())).count();
+        long fallidos = sends.stream().filter(s -> "FAILED".equals(s.getEstado())).count();
+        
+        stats.put("totalEnviados", totalEnviados);
+        stats.put("abiertos", abiertos);
+        stats.put("fallidos", fallidos);
+        stats.put("tazaApertura", totalEnviados > 0 ? ((double) abiertos / totalEnviados * 100) : 0);
+        stats.put("estado", campaign.get().getEstado());
+        
+        return stats;
     }
 
     private BigDecimal calculateEngagementScore(UserEngagementTracking tracking) {
