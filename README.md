@@ -145,7 +145,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👥 Autores
 
-- **Tu Nombre** - *Desarrollo principal* - [@tu_usuario](https://github.com/tu_usuario)
+- **Diego Alejandro David** - *Desarrollo principal* - [@diegodavid18]
 
 ## 🙏 Agradecimientos
 
