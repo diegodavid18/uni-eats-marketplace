@@ -5,8 +5,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Start immediately without waiting - no more infinite loops!
-    console.log('🚀 Starting Vendor Dashboard immediately');
     startVendorApp();
 });
 
@@ -192,12 +190,10 @@ function startVendorApp() {
                 const hasChanges = App.state.lastPedidosHash !== newHash;
                 
                 if (hasChanges) {
-                    console.log('🔄 Cambios detectados en pedidos, actualizando UI...');
                     App.state.lastPedidosHash = newHash;
                     App.state.currentPedidos = newPedidos;
                     return true;
                 } else {
-                    console.log('✅ No hay cambios en pedidos, manteniendo UI actual');
                     return false;
                 }
             },
@@ -1720,7 +1716,6 @@ function startVendorApp() {
                 }
             });
             
-            console.log('🧹 All loading indicators cleaned up');
         },
 
         async init() {
@@ -1766,12 +1761,10 @@ function startVendorApp() {
                 clearTimeout(loadTimeout);
                 
                 if (response.status === 404) {
-                    console.log('🏪 No store found, showing welcome screen');
                     this.ui.render(this.components.Welcome.render());
                     this.components.Welcome.init();
                 } else if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Dashboard data loaded:', data);
                     
                     // Update state immediately
                     this.state = { ...this.state, ...data };
@@ -1783,7 +1776,6 @@ function startVendorApp() {
                     this.components.Dashboard.init(this.state);
                     
                     console.timeEnd('Dashboard Load Time');
-                    console.log('🚀 Dashboard rendered successfully - UI should be ready now');
                     
                     // Force remove any remaining loading indicators
                     this.removeAllLoadingIndicators();

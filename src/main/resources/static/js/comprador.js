@@ -1,16 +1,6 @@
 /**
  * @file Script principal para la App de Compradores de Uni-Eats.
- * @description Gestiona las vistas, el estado y la         case 'inicio': return `<div class="relative w-full px-4 py-4">
-        <div class="relative">
-            <input type="search" placeholder="Buscar comida deliciosa..." class="w-full bg-white/80 backdrop-blur-md placeholder-gray-400 text-gray-800 border-2 border-transparent rounded-2xl py-4 pl-12 pr-16 text-sm focus:outline-none focus:bg-white focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition-all duration-300 shadow-xl shadow-orange-100/50">
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
-                <i class="fas fa-search text-white text-xs"></i>
-            </div>
-            <button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                <i class="fas fa-sliders-h text-white text-xs"></i>
-            </button>
-        </div>
-    </div>`;ca de la PWA del comprador.
+ * @description Gestiona las vistas, el estado y la lógica de la PWA del comprador.
  * @version Pro Final 2.0 (Flujo de Compra Detallado)
  */
 document.addEventListener("DOMContentLoaded", () => {
@@ -139,8 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Enviar notificaciones por cada cambio detectado
                 if (changes.length > 0) {
-                    console.log('🔔 Cambios de estado detectados:', changes.length);
-                    
                     for (const change of changes) {
                         await this.showRefreshNotification(change);
                         // Pequeña pausa entre notificaciones
@@ -275,8 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
             newData.forEach(pedido => {
                 const oldStatus = oldMap.get(pedido.id);
                 if (oldStatus && oldStatus !== pedido.estado) {
-                    console.log(`🔔 CAMBIO DETECTADO: Pedido #${pedido.id} cambió de ${oldStatus} → ${pedido.estado}`);
-                    
                     // 🎯 Notificación INMEDIATA al usuario
                     this.showStatusNotification(pedido);
                     
@@ -402,7 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
         start() {
             if (State.polling.isActive) return;
             
-            console.log('🔄 Iniciando polling automático para notificaciones en tiempo real...');
             State.polling.isActive = true;
             
             State.polling.interval = setInterval(async () => {
@@ -465,14 +450,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             
-            console.log(`📊 Ajustando frecuencia de polling:`, {
-                'Es nube': isCloud,
-                'Vista actual': State.vistaActual,
-                'En vista pedidos': isInPedidosView,
-                'Pedidos activos': hasActivePedidos,
-                'Nueva frecuencia': `${newFrequency}ms`
-            });
-            
             if (newFrequency !== State.polling.frequency) {
                 State.polling.frequency = newFrequency;
                 if (State.polling.isActive) {
@@ -486,70 +463,46 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔔 Sistema de Notificaciones Web Push
     const WebNotifications = {
         async init() {
-            console.log('🔧 Iniciando WebNotifications...');
-            
             // Verificar soporte de notificaciones
             if (!State.notifications.isSupported) {
-                console.log('❌ Las notificaciones no están soportadas en este navegador');
                 return false;
             }
 
-            console.log('✅ Notificaciones soportadas');
-
             // Verificar estado de permisos
             State.notifications.permission = Notification.permission;
-            console.log('🔐 Estado de permisos:', State.notifications.permission);
             
             // Inicializar service worker si está disponible
             if ('serviceWorker' in navigator) {
                 try {
-                    console.log('🔄 Verificando Service Worker...');
                     const registration = await navigator.serviceWorker.ready;
                     State.notifications.serviceWorkerReady = true;
-                    console.log('✅ Service Worker listo para notificaciones');
                 } catch (error) {
-                    console.log('❌ Service Worker no disponible:', error);
+                    console.error('Service Worker error:', error);
                 }
-            } else {
-                console.log('❌ Service Worker no soportado');
             }
 
             return true;
         },
 
         async requestPermission() {
-            console.log('🔔 requestPermission llamado');
-            console.log('isSupported:', State.notifications.isSupported);
-            console.log('current permission:', State.notifications.permission);
-            console.log('🔍 User Agent:', navigator.userAgent);
-            console.log('🔍 Is HTTPS:', location.protocol === 'https:');
-            console.log('🔍 Host:', location.host);
-            console.log('🔍 Notification API exists:', 'Notification' in window);
-            
             if (!State.notifications.isSupported) {
-                console.log('❌ Notificaciones no soportadas');
                 return false;
             }
 
             if (State.notifications.permission === 'granted') {
-                console.log('✅ Ya tenemos permisos');
                 this.showPermissionGrantedMessage();
                 return true;
             }
 
             if (State.notifications.permission === 'denied') {
-                console.log('❌ Permisos denegados previamente');
                 this.showPermissionDeniedMessage();
                 return false;
             }
 
             // Mostrar explicación antes de solicitar permiso
-            console.log('📝 Mostrando modal de solicitud...');
             const userWantsNotifications = await this.showPermissionRequest();
-            console.log('Usuario quiere notificaciones:', userWantsNotifications);
             
             if (!userWantsNotifications) {
-                console.log('❌ Usuario rechazó en el modal');
                 return false;
             }
 
@@ -878,10 +831,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         break;
                     case 'productosTienda':
                         const tienda = await Api.getTienda(params.tiendaId);
-                        const productosDeTrienda = await Api.getProductosDeTienda(params.tiendaId);
+                        const productosDeTienda = await Api.getProductosDeTienda(params.tiendaId);
                         State.tiendaActual = tienda;
                         Header.innerHTML = this.getHeaderHTML('productosTienda', tienda);
-                        Container.innerHTML = this.getProductosTiendaHTML(productosDeTrienda, tienda);
+                        Container.innerHTML = this.getProductosTiendaHTML(productosDeTienda, tienda);
                         break;
                     case 'perfil':
                         Header.innerHTML = this.getHeaderHTML('perfil');
